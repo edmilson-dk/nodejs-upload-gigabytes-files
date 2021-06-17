@@ -1,5 +1,8 @@
 let bytesAmount = 0;
 
+const API_URL = "http://localhost:3000";
+const ON_UPLOAD_EVENT = "file-uploaded";
+
 const formatBytes = (bytes, decimals = 2) => {
   if (bytes === 0) return '0 Bytes';
 
@@ -30,17 +33,29 @@ const showSize = () => {
   bytesAmount = size;
   updateStatus(bytesAmount);
 
-  const interval = setInterval(() => {
-    const result = bytesAmount - 5e6;
-    bytesAmount = result < 0 ? 0 : result;
-    updateStatus(bytesAmount);
+  // const interval = setInterval(() => {
+  //   const result = bytesAmount - 5e6;
+  //   bytesAmount = result < 0 ? 0 : result;
+  //   updateStatus(bytesAmount);
 
-    if (bytesAmount === 0) clearInterval(interval);
-  }, 50);
+  //   if (bytesAmount === 0) clearInterval(interval);
+  // }, 50);
 }
 
 const onload = () => {
-  console.log('load');
+  const ioClient = io.connect(API_URL, { withCredentials: false });
+
+  ioClient.on("connect", (msg) => {
+    console.log('Connected: ', ioClient.id);
+  });
+
+  ioClient.on(ON_UPLOAD_EVENT, (bytesReceived) => {
+    console.log('received: ', bytesReceived);
+    bytesAmount = bytesAmount - bytesReceived;
+    updateStatus(bytesAmount);
+  });
+
+  updateStatus(0);
 }
 
 
