@@ -2,6 +2,7 @@ const http = require("http");
 const socketIo = require("socket.io");
 
 const Routes = require("./routes");
+const { logger } = require("./util");
 
 const PORT = 3000;
 
@@ -24,12 +25,12 @@ const io = socketIo(server, {
 });
 
 io.on("connection", (socket) => {
-  console.log(`Someone connected: `, socket.id);
+  logger.info(`Someone connected: ` + socket.id);
 });
 
 const startServer = () => {
   const { address, port } = server.address();
-  console.log(`Server at running in http://${address}:${port}`);
+  logger.info(`Server at running in http://${address}:${port}`);
 }
 
 server.listen(PORT, startServer);
