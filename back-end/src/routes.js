@@ -1,11 +1,21 @@
 const url= require("url");
+
 const UploadHanlder = require("./uploadHanlder");
+const { pipelineAsync, logger } = require("./util");
 
 class Routes {
   #io;
-
   constructor(io) {
     this.#io = io;
+  }
+
+  async options(request, response) {
+    response.writeHead(204, {
+      'Access-Control-Allow-Origin': '*',
+      'Access-Control-Allow-Methods': 'OPTIONS, POST',
+    });
+
+    response.end();
   }
 
   async post(request, response) {
@@ -23,10 +33,17 @@ class Routes {
       response.end();
     }
 
-    uploadHandler.registerEvents(
+    const busboyInstance = uploadHandler.registerEvents(
       headers, 
-      onFinish(request, headers.origin)
-    )
+      onFinish(response, headers.origin)
+    );
+
+    await pipelineAsync(
+      request,
+      busboyInstance
+    );
+
+    logger.info("Request finished with success!");
   }
 }
 
