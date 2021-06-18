@@ -42,11 +42,37 @@ const showSize = () => {
   // }, 50);
 }
 
+const updateMessage = (message) => {
+  const msg = document.getElementById("msg");
+  msg.innerHTML = message;
+
+  msg.classList.add("alert", "alert-primary", "mt-2");
+  setInterval(() => (msg.hidden = true), 3000);
+}
+
+const showMessage = () => {
+  const urlParams = new URLSearchParams(window.location.search);
+  const serverMessage = urlParams.get("msg");
+  
+  if (!serverMessage) return;
+
+  updateMessage(serverMessage);
+}
+
+const configureForm = (targetUrl) => {
+  const form = document.getElementById("form");
+  form.action = targetUrl;
+}
+
 const onload = () => {
+  showMessage();
+
   const ioClient = io.connect(API_URL, { withCredentials: false });
 
   ioClient.on("connect", (msg) => {
     console.log('Connected: ', ioClient.id);
+    const targetUrl = API_URL + `?socketId=${ioClient.id}`;
+    configureForm(targetUrl);
   });
 
   ioClient.on(ON_UPLOAD_EVENT, (bytesReceived) => {
