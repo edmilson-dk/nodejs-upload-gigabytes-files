@@ -1,4 +1,5 @@
 const url= require("url");
+const UploadHanlder = require("./uploadHanlder");
 
 class Routes {
   #io;
@@ -11,12 +12,9 @@ class Routes {
     const { headers } = request;
     const { query: { socketId }} = url.parse(request.url, true);
 
-    this.#io.to(socketId).emit("file-uploaded", 5e9);
-    this.#io.to(socketId).emit("file-uploaded", 5e9);
-    this.#io.to(socketId).emit("file-uploaded", 5e9);
-    this.#io.to(socketId).emit("file-uploaded", 5e9);
+    const uploadHandler = new UploadHanlder(this.#io, socketId);
 
-    const onFinish = (response, redirectTo) => {
+    const onFinish = (response, redirectTo) => () => {
       response.writeHead(303, {
         Connection: 'close',
         Location: `${redirectTo}?msg=File uploaded with success!`,
@@ -25,9 +23,10 @@ class Routes {
       response.end();
     }
 
-    setTimeout(() => {
-      return onFinish(response, headers.origin);
-    }, 2000);
+    uploadHandler.registerEvents(
+      headers, 
+      onFinish(request, headers.origin)
+    )
   }
 }
 
